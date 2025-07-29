@@ -1,0 +1,50 @@
+name: Build PixelOS for sapphiren
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    env:
+      USERNAME: "YOUR_GITHUB_USERNAME"  # Поставь свой ник
+      DEVICE: "sapphiren"
+      MANIFEST: "https://github.com/PixelOS-AOSP/manifest"
+      BRANCH: "fourteen"
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib \
+          gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev \
+          lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev \
+          libxml2 libxml2-utils lzop openjdk-11-jdk pngcrush rsync schedtool \
+          squashfs-tools xsltproc zip zlib1g-dev repo python3 python3-pip
+
+    - name: Setup repo
+      run: |
+        mkdir -p ~/android/pixelos
+        cd ~/android/pixelos
+        repo init -u $MANIFEST -b $BRANCH
+        repo sync -j$(nproc)
+
+    - name: Clone device trees and kernel/vendor
+      run: |
+        cd ~/android/pixelos
+        git clone https://github.com/Chickendrop89/device_xiaomi_sapphiren.git device/xiaomi/sapphiren
+        git clone https://github.com/Chickendrop89/kernel_xiaomi_sapphiren.git kernel/xiaomi/sapphiren
+        git clone https://github.com/Chickendrop89/vendor_xiaomi_sapphiren.git vendor/xiaomi/sapphiren
+
+    - name: Build PixelOS
+      run: |
+        source build/envsetup.sh
+        lunch aosp_$DEVICE-userdebug
+        mka bacon -j$(nproc)
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: PixelOS_$DEVICE
+        path: ~/android/pixelos/out/target/product/$DEVICE/*.zip
