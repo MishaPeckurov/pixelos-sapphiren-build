@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      USERNAME: "YOUR_GITHUB_USERNAME"  # Поставь свой ник
+      USERNAME: "MishaPeckurov"
       DEVICE: "sapphiren"
       MANIFEST: "https://github.com/PixelOS-AOSP/manifest"
       BRANCH: "fourteen"
@@ -44,7 +44,7 @@ jobs:
         mka bacon -j$(nproc)
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PixelOS_$DEVICE
         path: ~/android/pixelos/out/target/product/$DEVICE/*.zip
